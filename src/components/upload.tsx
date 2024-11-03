@@ -111,7 +111,6 @@ export default function EnhancedDropboxClone() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <div className="w-64 bg-white shadow-md flex flex-col">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">Folders</h2>
