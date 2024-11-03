@@ -10,7 +10,7 @@ import clerk from "@clerk/astro";
 
 // https://astro.build/config
 export default defineConfig({
-  // site: "https://your-website.com",
+  site: "https://files.sendithere.co",
   integrations: [
     clerk({
       appearance: {
