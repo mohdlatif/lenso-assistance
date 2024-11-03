@@ -1,0 +1,24 @@
+---
+import Layout from "../layouts/Layout.astro";
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/astro/components";
+---
+
+<Layout title="Lenso - upload your files.">
+  <header>
+    <h1>Hey</h1>
+    <nav>
+      <SignedOut>
+        <SignInButton mode="modal" />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
+    </nav>
+  </header>
+  <main></main>
+</Layout>
