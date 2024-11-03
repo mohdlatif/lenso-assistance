@@ -47,9 +47,7 @@ export default function EnhancedDropboxClone() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
-
-  const bucketName =
-    import.meta.env.GOOGLE_CLOUD_BUCKET_NAME || "your-bucket-name";
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -135,23 +133,30 @@ export default function EnhancedDropboxClone() {
       };
       setFolders((prev) => [...prev, newFolder]);
       setNewFolderName("");
+      setIsDialogOpen(false);
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-full bg-gray-100">
       <div className="w-64 bg-white shadow-md flex flex-col">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">Folders</h2>
-          <ScrollArea className="h-[calc(100vh-250px)]">
+          <ScrollArea className="min-h-[200px]">
             <ul className="space-y-2">
               <li>
                 <Button
                   variant={selectedFolder === null ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className={`w-full justify-start transition-all duration-200 hover:bg-blue-50 ${
+                    selectedFolder === null ? "bg-blue-100 text-blue-700" : ""
+                  }`}
                   onClick={() => setSelectedFolder(null)}
                 >
-                  <Folder className="mr-2 h-4 w-4" />
+                  <Folder
+                    className={`mr-2 h-4 w-4 ${
+                      selectedFolder === null ? "text-blue-700" : ""
+                    }`}
+                  />
                   All Files
                 </Button>
               </li>
@@ -161,10 +166,18 @@ export default function EnhancedDropboxClone() {
                     variant={
                       selectedFolder === folder.id ? "secondary" : "ghost"
                     }
-                    className="w-full justify-start"
+                    className={`w-full justify-start transition-all duration-200 hover:bg-blue-50 ${
+                      selectedFolder === folder.id
+                        ? "bg-blue-100 text-blue-700"
+                        : ""
+                    }`}
                     onClick={() => setSelectedFolder(folder.id)}
                   >
-                    <Folder className="mr-2 h-4 w-4" />
+                    <Folder
+                      className={`mr-2 h-4 w-4 ${
+                        selectedFolder === folder.id ? "text-blue-700" : ""
+                      }`}
+                    />
                     {folder.name}
                   </Button>
                 </li>
@@ -173,14 +186,14 @@ export default function EnhancedDropboxClone() {
           </ScrollArea>
         </div>
         <div className="p-4">
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full">
                 <Plus className="mr-2 h-4 w-4" />
                 New Folder
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-gray-50">
               <DialogHeader>
                 <DialogTitle>Create New Folder</DialogTitle>
               </DialogHeader>
@@ -190,7 +203,12 @@ export default function EnhancedDropboxClone() {
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                 />
-                <Button onClick={handleCreateFolder}>Create</Button>
+                <Button
+                  onClick={handleCreateFolder}
+                  className="bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
+                >
+                  Create
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
