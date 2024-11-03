@@ -1,3 +1,4 @@
+export const prerender = false;
 import { Storage } from "@google-cloud/storage";
 import type { APIRoute } from "astro";
 import { Readable } from "stream";
@@ -57,13 +58,16 @@ const uploadFile = async (
   });
 };
 
-export const prerender = false;
+export const POST: APIRoute = async ({ request, locals }) => {
+  const userId = locals.auth().userId;
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-export const POST: APIRoute = async ({ request }) => {
   try {
     const data = await request.formData();
     const file = data.get("file") as File;
-    const folder = data.get("folder") as string;
+    const folderName = data.get("folder") as string;
 
     // Validation
     if (!file) {
@@ -86,13 +90,39 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const sanitizedFolder = folder.replace(/[^a-zA-Z0-9-_]/g, "_");
+    // Create nested path: userId/folderName/filename
+    const sanitizedFolder = folderName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-zA-Z0-9-_]/g, "_");
     const timestamp = Date.now();
+
+    // Get existing folders
+    const [files] = await storage.bucket(bucketName).getFiles({
+      prefix: `${userId}/`,
+      delimiter: "/",
+    });
+
+    const existingFolders = new Set(
+      files.map((file) => file.name.split("/")[1]).filter(Boolean)
+    );
+
+    let finalFolderName = sanitizedFolder;
+    if (existingFolders.has(sanitizedFolder)) {
+      // Find the most similar folder name
+      const similarFolder = Array.from(existingFolders).find(
+        (folder) => folder.toLowerCase() === sanitizedFolder.toLowerCase()
+      );
+      if (similarFolder) {
+        finalFolderName = similarFolder;
+      }
+    }
+
     const safeFileName = `${timestamp}-${file.name.replace(
       /[^a-zA-Z0-9.-]/g,
       "_"
     )}`;
-    const filePath = `${sanitizedFolder}/${safeFileName}`;
+    const filePath = `${userId}/${finalFolderName}/${safeFileName}`;
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());

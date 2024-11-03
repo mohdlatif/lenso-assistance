@@ -1,4 +1,9 @@
-import React, { useState, useCallback, useMemo } from "react";
+//https://clerk.com/docs/references/astro/read-session-data
+export const prerender = false;
+import { useStore } from "@nanostores/react";
+import { $authStore } from "@clerk/astro/client";
+
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import {
   Search,
@@ -9,8 +14,9 @@ import {
   X,
   Folder,
   Plus,
-  Tag,
+  Tag as TagIcon,
 } from "lucide-react";
+import { File as FileIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +29,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+// import { useAuth } from "@clerk/nextjs";
 
 type FileItem = {
   name: string;
@@ -38,16 +46,43 @@ type FolderItem = {
 };
 
 export default function EnhancedDropboxClone() {
+  const auth = useStore($authStore);
+  const userId = auth?.userId;
   const [files, setFiles] = useState<FileItem[]>([]);
   const [folders, setFolders] = useState<FolderItem[]>([
     { id: "1", name: "Documents" },
     { id: "2", name: "Images" },
   ]);
-  const [tags, setTags] = useState<string[]>(["work", "personal", "important"]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      if (!userId) return;
+
+      try {
+        const response = await fetch("/api/images");
+        if (!response.ok) throw new Error("Failed to fetch files");
+        const data = await response.json();
+
+        // Ensure data.files is an array
+        if (Array.isArray(data.files)) {
+          setFiles(data.files);
+          setFolders(data.folders);
+        } else {
+          console.error("Expected files to be an array:", data.files);
+          setFiles([]); // Reset to empty array if not an array
+        }
+      } catch (error) {
+        console.error("Error fetching files:", error);
+      }
+    };
+
+    fetchFiles();
+  }, [userId]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -90,7 +125,7 @@ export default function EnhancedDropboxClone() {
             {
               name: file.name,
               size: file.size,
-              type: file.type,
+              type: file.type || "unknown",
               folderId: selectedFolder,
               url: url,
             },
@@ -119,10 +154,18 @@ export default function EnhancedDropboxClone() {
   };
 
   const getFileIcon = (fileType: string) => {
+    if (!fileType) return <FileIcon className="w-6 h-6" />;
     if (fileType.startsWith("image/")) return <Image className="w-6 h-6" />;
     if (fileType.startsWith("video/")) return <Video className="w-6 h-6" />;
     if (fileType === "application/pdf") return <FileText className="w-6 h-6" />;
-    return <File className="w-6 h-6" />;
+    if (
+      fileType === "application/msword" ||
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      return <FileIcon className="w-6 h-6" />;
+    }
+    return <FileIcon className="w-6 h-6" />;
   };
 
   const handleCreateFolder = () => {
@@ -136,6 +179,52 @@ export default function EnhancedDropboxClone() {
       setIsDialogOpen(false);
     }
   };
+
+  // Sample tags for demonstration
+  const tags = ["Images", "Documents", "Videos", "Favorites"];
+
+  const handleImageClick = (url: string) => {
+    setSelectedImage(url);
+  };
+
+  const closeModal = () => {
+    setSelectedImage(null);
+  };
+
+  // Effect to handle key press for closing the modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    };
+
+    // Add event listener for keydown
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  // Effect to handle clicks outside the modal
+  const handleClickOutside = (event: MouseEvent) => {
+    const modal = document.getElementById("image-modal");
+    if (modal && !modal.contains(event.target as Node)) {
+      closeModal();
+    }
+  };
+
+  // Add event listener for clicks outside the modal
+  useEffect(() => {
+    window.addEventListener("click", handleClickOutside);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="flex h-full bg-gray-100">
@@ -193,7 +282,7 @@ export default function EnhancedDropboxClone() {
                 New Folder
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-gray-50">
+            <DialogContent className="bg-white">
               <DialogHeader>
                 <DialogTitle>Create New Folder</DialogTitle>
               </DialogHeader>
@@ -214,20 +303,6 @@ export default function EnhancedDropboxClone() {
           </Dialog>
         </div>
         <Separator />
-        <div className="p-4 mt-auto">
-          <h3 className="text-sm font-semibold mb-2">Tags</h3>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <div
-                key={tag}
-                className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs flex items-center"
-              >
-                <Tag className="w-3 h-3 mr-1" />
-                {tag}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Main Content */}
@@ -246,7 +321,6 @@ export default function EnhancedDropboxClone() {
             />
           </div>
         </div>
-
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-colors ${
@@ -266,41 +340,122 @@ export default function EnhancedDropboxClone() {
             (less than 10MB)
           </p>
         </div>
-
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">
-            {selectedFolder === null
-              ? "All Files"
-              : `Files in ${
-                  folders.find((f) => f.id === selectedFolder)?.name
-                }`}
-          </h2>
-          <ul className="space-y-2">
-            {filteredFiles.map((file) => (
-              <li
-                key={file.name}
-                className="flex items-center justify-between bg-white p-3 rounded-lg shadow"
+          <h2 className="text-xl font-semibold mb-4">Your Files</h2>
+          {filteredFiles.length === 0 ? (
+            <p className="text-gray-500">No files found</p>
+          ) : (
+            <>
+              {/* Row for images and videos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredFiles.map(
+                  (file) =>
+                    (file.type?.startsWith("image/") ||
+                      file.type?.startsWith("video/")) && (
+                      <div
+                        key={file.name}
+                        className="bg-white p-4 rounded-lg shadow"
+                      >
+                        {file.type.startsWith("image/") ? (
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="w-full h-48 object-cover rounded-lg mb-2 cursor-pointer"
+                            onClick={() => handleImageClick(file.url)}
+                          />
+                        ) : (
+                          <video
+                            controls
+                            className="w-full h-48 object-cover rounded-lg mb-2"
+                          >
+                            <source src={file.url} type={file.type} />
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="truncate">
+                            {file.name.split("/").pop()}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFile(file.name)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                )}
+              </div>
+
+              {/* Row for other file types */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                {filteredFiles.map((file) =>
+                  !file.type?.startsWith("image/") &&
+                  !file.type?.startsWith("video/") ? (
+                    <div
+                      key={file.name}
+                      className="flex items-center bg-white p-2 rounded-lg shadow"
+                    >
+                      <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-lg">
+                        {getFileIcon(file.type)}
+                      </div>
+                      <span className="ml-2 truncate">
+                        {file.name.split("/").pop()}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeFile(file.name)}
+                        className="ml-auto"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : null
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Modal for displaying the selected image */}
+        {selectedImage && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div id="image-modal" className="relative">
+              <img
+                src={selectedImage}
+                alt="Selected"
+                className="max-w-[80vw] max-h-[70vh] object-contain" // Set max width and height
+                onError={() =>
+                  console.error("Image failed to load:", selectedImage)
+                } // Log error if image fails to load
+              />
+              <button
+                onClick={closeModal}
+                className="absolute top-2 right-2 text-white"
               >
-                <div className="flex items-center space-x-3">
-                  {getFileIcon(file.type)}
-                  <span>{file.name}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeFile(file.name)}
-                  >
-                    <X className="w-4 h-4" />
-                    <span className="sr-only">Remove file</span>
-                  </Button>
-                </div>
-              </li>
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tags Section */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-2">Tags</h3>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-full shadow-md hover:bg-blue-600 transition duration-200"
+              >
+                <TagIcon className="mr-1 h-4 w-4" />
+                {tag}
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
     </div>
