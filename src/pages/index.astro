@@ -1,7 +1,126 @@
 ---
+import Nav from "@/components/Nav.astro";
 import Layout from "../layouts/Layout.astro";
+import HeaderPage from "@/components/HeaderPage.astro";
+import Footer from "@/components/Footer.astro";
+import Pricing from "@/components/Pricing.astro";
 ---
 
-<Layout title="Welcome to Astro.">
-  <main>lets go</main>
+<Layout title="Lenso - Your Files, Found Through Conversation.">
+  <Nav />
+  <HeaderPage />
+  <section class="bg-darkPink-900 py-28">
+    <div class="container mx-auto px-4">
+      <p
+        class="uppercase text-center text-sweetPink-400 text-xs tracking-widest mb-4"
+      >
+        FEATURES
+      </p>
+      <h1
+        class="font-heading text-white text-center text-4xl md:text-5xl font-bold mb-4"
+      >
+        Designed for the digital age explorer
+      </h1>
+      <p
+        class="text-white text-opacity-70 text-lg text-center max-w-2xl mx-auto mb-20"
+      >
+        Our platform transforms how you store and discover your content, letting
+        you focus on creating memories while AI handles the organization.
+      </p>
+      <div class="flex flex-wrap -m-4">
+        <div class="w-full sm:w-1/2 lg:w-1/4 p-4">
+          <div class="bg-pinkSecondary-900 rounded-3xl p-6 h-full">
+            <div
+              class="rounded-full border border-pink-500 w-10 h-10 flex items-center justify-center mb-4"
+            >
+              <div
+                class="bg-pinkSecondary-900 w-8 h-8 rounded-full border border-white border-opacity-10 flex items-center justify-center"
+              >
+                <img
+                  class="h-4"
+                  src="vista-assets/images/features/money.svg"
+                  alt=""
+                />
+              </div>
+            </div>
+            <p class="text-white text-lg font-bold mb-1">Natural Search</p>
+            <p class="text-white text-opacity-70 text-sm max-w-xs">
+              Chat with your files naturally - ask questions like you're talking
+              to a friend.
+            </p>
+          </div>
+        </div>
+        <div class="w-full sm:w-1/2 lg:w-1/4 p-4">
+          <div class="bg-pinkSecondary-900 rounded-3xl p-6 h-full">
+            <div
+              class="rounded-full border border-pink-500 w-10 h-10 flex items-center justify-center mb-4"
+            >
+              <div
+                class="bg-pinkSecondary-900 w-8 h-8 rounded-full border border-white border-opacity-10 flex items-center justify-center"
+              >
+                <img
+                  class="h-4"
+                  src="vista-assets/images/features/profile.svg"
+                  alt=""
+                />
+              </div>
+            </div>
+            <p class="text-white text-lg font-bold mb-1">Smart Understanding</p>
+            <p class="text-white text-opacity-70 text-sm max-w-xs">
+              Our AI understands your images, videos, and documents, making
+              everything searchable.
+            </p>
+          </div>
+        </div>
+        <div class="w-full sm:w-1/2 lg:w-1/4 p-4">
+          <div class="bg-pinkSecondary-900 rounded-3xl p-6 h-full">
+            <div
+              class="rounded-full border border-pink-500 w-10 h-10 flex items-center justify-center mb-4"
+            >
+              <div
+                class="bg-pinkSecondary-900 w-8 h-8 rounded-full border border-white border-opacity-10 flex items-center justify-center"
+              >
+                <img
+                  class="h-4"
+                  src="vista-assets/images/features/chart.svg"
+                  alt=""
+                />
+              </div>
+            </div>
+            <p class="text-white text-lg font-bold mb-1">Universal Storage</p>
+            <p class="text-white text-opacity-70 text-sm max-w-xs">
+              Upload any type of content - from vacation photos to work
+              documents, all in one secure place.
+            </p>
+          </div>
+        </div>
+        <div class="w-full sm:w-1/2 lg:w-1/4 p-4">
+          <div class="bg-pinkSecondary-900 rounded-3xl p-6 h-full">
+            <div
+              class="rounded-full border border-pink-500 w-10 h-10 flex items-center justify-center mb-4"
+            >
+              <div
+                class="bg-pinkSecondary-900 w-8 h-8 rounded-full border border-white border-opacity-10 flex items-center justify-center"
+              >
+                <img
+                  class="h-4"
+                  src="vista-assets/images/features/cloud.svg"
+                  alt=""
+                />
+              </div>
+            </div>
+            <p class="text-white text-lg font-bold mb-1">Cloud-Powered</p>
+            <p class="text-white text-opacity-70 text-sm max-w-xs">
+              Access your memories anywhere, anytime, with reliable cloud
+              storage from AWS or Cloudflare.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Pricing />
+
+  <Footer />
 </Layout>

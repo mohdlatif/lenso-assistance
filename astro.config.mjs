@@ -4,7 +4,7 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 
 import tailwind from "@astrojs/tailwind";
-
+import alpine from "@astrojs/alpinejs";
 import vercel from "@astrojs/vercel/serverless";
 import clerk from "@clerk/astro";
 
@@ -19,10 +19,10 @@ export default defineConfig({
         },
       },
     }),
-    ,
+    alpine({ entrypoint: "/src/entrypoint" }),
     react(),
     tailwind(),
   ],
-  output: "server",
+  output: "hybrid",
   adapter: vercel(),
 });
