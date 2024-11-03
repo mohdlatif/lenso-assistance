@@ -10,7 +10,18 @@ import clerk from "@clerk/astro";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [clerk(), react(), tailwind()],
+  integrations: [
+    clerk({
+      appearance: {
+        layout: {
+          unsafe_disableDevelopmentModeWarnings: true,
+        },
+      },
+    }),
+    ,
+    react(),
+    tailwind(),
+  ],
   output: "server",
   adapter: vercel(),
 });
