@@ -1,24 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import {
-  SignedIn,
-  SignedOut,
-  UserButton,
-  SignInButton,
-} from "@clerk/astro/components";
+import Nav from "@/components/NavDashboard.astro";
+import Upload from "@/components/upload";
 ---
 
-<Layout title="Lenso - upload your files.">
-  <header>
-    <h1>Lenso</h1>
-    <nav>
-      <SignedOut>
-        <SignInButton mode="modal" />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-    </nav>
-  </header>
-  <main></main>
+<Layout title="Lenso - Your Files, Found Through Conversation">
+  <Nav />
+  <main class="bg-gray-50 min-h-screen">
+    <Upload client:load />
+  </main>
 </Layout>

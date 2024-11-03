@@ -25,4 +25,9 @@ export default defineConfig({
   ],
   output: "hybrid",
   adapter: vercel(),
+  vite: {
+    ssr: {
+      noExternal: ["react-dropzone"],
+    },
+  },
 });

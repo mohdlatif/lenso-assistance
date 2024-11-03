@@ -1,0 +1,47 @@
+---
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/astro/components";
+---
+
+<section x-data="{ mobileNavOpen: false }">
+  <nav class="py-5 bg-darkPink-900">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between">
+        <a class="text-white text-sm font-bold" href="#"> Lenso </a>
+
+        <a
+          href="#"
+          class="hidden lg:flex items-center gap-2 text-white hover:text-pink-500 transition duration-200"
+        >
+          <SignedOut>
+            <SignInButton mode="modal" />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </a>
+        <button class="lg:hidden" x-on:click="mobileNavOpen = !mobileNavOpen">
+          <svg
+            width="51"
+            height="51"
+            viewBox="0 0 56 56"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="56" height="56" rx="28" fill="white"></rect>
+            <path
+              d="M37 32H19M37 24H19"
+              stroke="black"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+</section>
