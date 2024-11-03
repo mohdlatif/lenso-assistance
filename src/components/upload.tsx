@@ -29,6 +29,7 @@ type FileItem = {
   size: number;
   type: string;
   folderId: string | null;
+  url?: string;
 };
 
 type FolderItem = {
@@ -47,32 +48,60 @@ export default function EnhancedDropboxClone() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
 
+  const bucketName =
+    import.meta.env.GOOGLE_CLOUD_BUCKET_NAME || "your-bucket-name";
+
   const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      const newFiles = acceptedFiles
-        .filter((file) => {
-          const isValidType = [
-            "application/pdf",
-            "text/plain",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "video/mp4",
-          ].includes(file.type);
-          const isValidSize = file.type.startsWith("video/")
-            ? file.size <= 10 * 1024 * 1024
-            : file.size <= 5 * 1024 * 1024;
-          return isValidType && isValidSize;
-        })
-        .map((file) => ({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          folderId: selectedFolder,
-        }));
-      setFiles((prev) => [...prev, ...newFiles]);
+    async (acceptedFiles: File[]) => {
+      const newFiles = acceptedFiles.filter((file) => {
+        const isValidType = [
+          "application/pdf",
+          "text/plain",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "image/jpeg",
+          "image/png",
+          "image/gif",
+          "video/mp4",
+        ].includes(file.type);
+        const isValidSize = file.type.startsWith("video/")
+          ? file.size <= 10 * 1024 * 1024
+          : file.size <= 5 * 1024 * 1024;
+        return isValidType && isValidSize;
+      });
+
+      for (const file of newFiles) {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("folder", selectedFolder || "root");
+
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error("Upload failed");
+          }
+
+          const { url } = await response.json();
+
+          setFiles((prev) => [
+            ...prev,
+            {
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              folderId: selectedFolder,
+              url: url,
+            },
+          ]);
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          // Handle error appropriately
+        }
+      }
     },
     [selectedFolder]
   );

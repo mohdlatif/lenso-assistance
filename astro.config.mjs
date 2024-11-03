@@ -13,6 +13,10 @@ export default defineConfig({
   site: "https://files.sendithere.co",
   integrations: [
     clerk({
+      afterSignUpUrl: "/dashboard",
+      forceRedirectUrl: "/dashboard",
+      signInUrl: "/",
+      signUpUrl: "/",
       appearance: {
         layout: {
           unsafe_disableDevelopmentModeWarnings: true,
