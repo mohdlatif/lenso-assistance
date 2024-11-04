@@ -1,54 +1,37 @@
-# Astro Starter Kit: Basics
+# Lenso: Your AI-Powered Visual Memory Bank
 
-```sh
-npm create astro@latest -- --template basics
-```
+Lenso is an AI-powered platform that allows you to effortlessly manage, search, and rediscover your personal photos and videos. 
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+[![Lenso Demo](https://files.sendithere.co/)](https://files.sendithere.co/)
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Key Features
 
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
+* **AI-Powered Search:** Find any memory instantly using natural language queries (e.g., "photos of my dog at the beach," "videos from my graduation").
+* **Visual Similarity Search:** Upload an image and discover similar photos or video frames in your collection.
+* **Automatic Organization:** Lenso analyzes your content, identifying people, objects, and scenes for easy browsing.
+* **Secure Storage:** Your memories are safe and accessible anytime, anywhere, thanks to Google Cloud Storage.
+* **User-Friendly Interface:**  Intuitive design makes it easy to upload, organize, and search your visual memories.
 
-## 🚀 Project Structure
+## How it Works
 
-Inside of your Astro project, you'll see the following folders and files:
+1. **Upload:** Securely upload your photos and videos.
+2. **Analyze:** Lenso uses Google Cloud's Vision API and Video Intelligence API to analyze your content, extracting rich metadata.
+3. **Organize:**  Lenso automatically organizes your memories based on the extracted information.
+4. **Search:**  Effortlessly find any memory using natural language or visual similarity search.
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## Tech Stack
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+* **Front-end:** Astro
+* **Authentication:** Clerk
+* **Storage:** Google Cloud Storage
+* **AI:** Google Cloud Vision API, Google Cloud Video Intelligence API
+* **Database:** Supabase
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Acknowledgments
 
-## 🧞 Commands
+* We'd like to thank Google Cloud and Supabase for their powerful platforms and APIs.
 
-All commands are run from the root of the project, from a terminal:
+## License
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+*MIT License*
