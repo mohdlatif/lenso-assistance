@@ -38,6 +38,10 @@ type FileItem = {
   type: string;
   folderId: string | null;
   url?: string;
+  visionData?: {
+    labels?: string[];
+    text?: string;
+  };
 };
 
 type FolderItem = {
@@ -192,6 +196,29 @@ export default function EnhancedDropboxClone() {
           }
 
           const { url } = await response.json();
+
+          // Add Vision AI processing for images
+          if (file.type.startsWith("image/")) {
+            try {
+              const visionResponse = await fetch("/api/analyze-image", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ imageUrl: url }),
+              });
+
+              if (!visionResponse.ok) {
+                throw new Error("Vision AI analysis failed");
+              }
+
+              const visionData = await visionResponse.json();
+              console.log("Vision AI results:", visionData);
+              // You can store or process the Vision AI results here
+            } catch (error) {
+              console.error("Error analyzing image with Vision AI:", error);
+            }
+          }
 
           setFiles((prev) => [
             ...prev,
