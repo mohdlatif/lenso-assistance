@@ -361,13 +361,29 @@ export default function EnhancedDropboxClone() {
           </Dialog>
         </div>
         <Separator />
+        {/* Tags Section */}
+        <div className="mt-auto">
+          <h3 className="text-lg font-semibold mb-2">Tags</h3>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-full shadow-md hover:bg-blue-600 transition duration-200"
+              >
+                <TagIcon className="mr-1 h-4 w-4" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-auto">
         <h1 className="text-2xl font-bold mb-6">
           {selectedFolder
-            ? folders.find((folder) => folder.id === selectedFolder)?.name
+            ? folders.find((folder) => folder.id === selectedFolder)?.name ||
+              "Folder Not Found"
             : "Select a Folder"}
         </h1>
 
@@ -490,21 +506,6 @@ export default function EnhancedDropboxClone() {
             onClose={() => setSelectedImage(null)}
           />
         )}
-        {/* Tags Section */}
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2">Tags</h3>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-full shadow-md hover:bg-blue-600 transition duration-200"
-              >
-                <TagIcon className="mr-1 h-4 w-4" />
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
