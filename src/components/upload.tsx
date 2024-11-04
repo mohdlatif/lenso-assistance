@@ -41,6 +41,7 @@ type FileItem = {
   visionData?: {
     labels?: string[];
     text?: string;
+    ariaDescription?: string;
   };
 };
 
@@ -231,22 +232,64 @@ export default function EnhancedDropboxClone() {
 
               const visionData = await visionResponse.json();
               console.log("Vision AI results:", visionData);
-              // You can store or process the Vision AI results here
-            } catch (error) {
-              console.error("Error analyzing image with Vision AI:", error);
-            }
-          }
 
-          setFiles((prev) => [
-            ...prev,
-            {
-              name: file.name,
-              size: file.size,
-              type: file.type || "unknown",
-              folderId: selectedFolder,
-              url: url,
-            },
-          ]);
+              // Get description from Aria using Vision AI results
+              const ariaResponse = await fetch("/api/aria", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  labels: visionData.labels,
+                  objects: visionData.objects,
+                }),
+              });
+
+              if (!ariaResponse.ok) throw new Error("Aria analysis failed");
+              const ariaData = await ariaResponse.json();
+
+              setFiles((prev) => [
+                ...prev,
+                {
+                  name: file.name,
+                  size: file.size,
+                  type: file.type,
+                  folderId: selectedFolder,
+                  url: url,
+                  visionData: {
+                    labels: visionData.labels,
+                    text: visionData.text,
+                    ariaDescription: ariaData.description,
+                  },
+                },
+              ]);
+            } catch (error) {
+              console.error("Error analyzing image:", error);
+              // Add the file without vision data if analysis fails
+              setFiles((prev) => [
+                ...prev,
+                {
+                  name: file.name,
+                  size: file.size,
+                  type: file.type,
+                  folderId: selectedFolder,
+                  url: url,
+                },
+              ]);
+            }
+          } else {
+            // Handle non-image files
+            setFiles((prev) => [
+              ...prev,
+              {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                folderId: selectedFolder,
+                url: url,
+              },
+            ]);
+          }
         } catch (error) {
           console.error("Error uploading file:", error);
           // Handle error appropriately
@@ -494,12 +537,31 @@ export default function EnhancedDropboxClone() {
                 <div key={file.name} className="bg-white p-4 rounded-lg shadow">
                   <div className="mb-2">
                     {file.type.startsWith("image/") ? (
-                      <img
-                        src={file.url || ""}
-                        alt={file.name}
-                        className="w-full h-48 object-cover rounded-lg cursor-pointer"
-                        onClick={() => handleImageClick(file.url || "")}
-                      />
+                      <div className="space-y-2">
+                        <img
+                          src={file.url || ""}
+                          alt={file.visionData?.ariaDescription || file.name}
+                          className="w-full h-48 object-cover rounded-lg cursor-pointer"
+                          onClick={() => handleImageClick(file.url || "")}
+                        />
+                        {file.visionData?.ariaDescription && (
+                          <p className="text-sm text-gray-600 italic">
+                            {file.visionData.ariaDescription}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {file.visionData?.labels
+                            ?.slice(0, 3)
+                            .map((label, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-full shadow-sm hover:bg-blue-600 transition-colors"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
                     ) : file.type.startsWith("video/") ? (
                       <VideoPlayer url={file.url || ""} name={file.name} />
                     ) : (

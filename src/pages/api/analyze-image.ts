@@ -16,12 +16,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response("Image URL is required", { status: 400 });
     }
 
-    // Initialize Vision client
     const visionClient = new ImageAnnotatorClient({
       credentials: credentials,
     });
 
-    // Perform multiple detection tasks
     const [result] = await visionClient.annotateImage({
       image: { source: { imageUri: imageUrl } },
       features: [
@@ -29,33 +27,28 @@ export const POST: APIRoute = async ({ request, locals }) => {
         { type: "TEXT_DETECTION" },
         { type: "FACE_DETECTION" },
         { type: "OBJECT_LOCALIZATION" },
-        { type: "IMAGE_PROPERTIES" },
       ],
     });
 
-    // Process and structure the response
+    // Combine all labels and objects into simplified arrays
+    const labelDescriptions =
+      result.labelAnnotations?.map((label) => label.description) || [];
+
+    const objectNames =
+      result.localizedObjectAnnotations?.map((obj) => obj.name) || [];
+
+    // Create simplified response
     const response = {
-      labels:
-        result.labelAnnotations?.map((label) => ({
-          description: label.description,
-          score: label.score,
-        })) || [],
+      labels: labelDescriptions,
+      objects: objectNames,
       text: result.fullTextAnnotation?.text || "",
       faces: result.faceAnnotations?.length || 0,
-      objects:
-        result.localizedObjectAnnotations?.map((obj) => ({
-          name: obj.name,
-          confidence: obj.score,
-        })) || [],
-      dominantColors:
-        result.imagePropertiesAnnotation?.dominantColors?.colors?.map(
-          (color) => ({
-            color: color.color,
-            score: color.score,
-            pixelFraction: color.pixelFraction,
-          })
-        ) || [],
     };
+
+    console.log("Combined Vision AI results:", {
+      labels: labelDescriptions.join(", "),
+      objects: objectNames.join(", "),
+    });
 
     return new Response(JSON.stringify(response), {
       status: 200,
