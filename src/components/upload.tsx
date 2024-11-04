@@ -126,10 +126,17 @@ export default function EnhancedDropboxClone() {
         if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
 
-        // Ensure data.files is an array
+        // Ensure data.files is an array and set folders from the API response
         if (Array.isArray(data.files)) {
           setFiles(data.files);
-          setFolders(data.folders);
+          // Set folders from the API response
+          const folderNames = data.folders.map(
+            (folderName: string, index: number) => ({
+              id: index.toString(), // Use index as a unique ID
+              name: folderName,
+            })
+          );
+          setFolders(folderNames);
         } else {
           console.error("Expected files to be an array:", data.files);
           setFiles([]); // Reset to empty array if not an array
@@ -297,7 +304,10 @@ export default function EnhancedDropboxClone() {
                   className={`w-full justify-start transition-all duration-200 hover:bg-blue-50 ${
                     selectedFolder === null ? "bg-blue-100 text-blue-700" : ""
                   }`}
-                  onClick={() => setSelectedFolder(null)}
+                  onClick={() => {
+                    setSelectedFolder(null); // Set to null for "All Files"
+                    setSearchTerm(""); // Clear search term
+                  }}
                 >
                   <Folder
                     className={`mr-2 h-4 w-4 ${
@@ -318,7 +328,10 @@ export default function EnhancedDropboxClone() {
                         ? "bg-blue-100 text-blue-700"
                         : ""
                     }`}
-                    onClick={() => setSelectedFolder(folder.id)}
+                    onClick={() => {
+                      setSelectedFolder(folder.id); // Set selected folder
+                      setSearchTerm(""); // Clear search term
+                    }}
                   >
                     <Folder
                       className={`mr-2 h-4 w-4 ${
