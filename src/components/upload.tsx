@@ -122,21 +122,29 @@ export default function EnhancedDropboxClone() {
       if (!userId) return;
 
       try {
-        const response = await fetch("/api/images");
+        const response = await fetch(`/api/images?userId=${userId}`);
         if (!response.ok) throw new Error("Failed to fetch files");
         const data = await response.json();
 
         // Ensure data.files is an array and set folders from the API response
         if (Array.isArray(data.files)) {
           setFiles(data.files);
-          // Set folders from the API response
-          const folderNames = data.folders.map(
-            (folderName: string, index: number) => ({
-              id: index.toString(), // Use index as a unique ID
+          // Set folders from the API response, filtering out the folder named "roots"
+          const folderNames = data.folders
+            .filter((folderName: string) => folderName !== "roots") // Filter out "roots"
+            .map((folderName: string) => ({
+              id: folderName, // Use folder name as a unique ID
               name: folderName,
-            })
-          );
+            }));
           setFolders(folderNames);
+
+          // Set default selected folder to "root" if it exists
+          const rootFolder = folderNames.find(
+            (folder: FolderItem) => folder.name === "root"
+          );
+          if (rootFolder) {
+            setSelectedFolder(rootFolder.id); // Set "root" as the default selected folder
+          }
         } else {
           console.error("Expected files to be an array:", data.files);
           setFiles([]); // Reset to empty array if not an array
@@ -209,10 +217,11 @@ export default function EnhancedDropboxClone() {
   const filteredFiles = useMemo(() => {
     return files.filter(
       (file) =>
-        file.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (selectedFolder === null || file.folderId === selectedFolder)
+        selectedFolder === null
+          ? true // Show all files if "All Files" is selected
+          : file.folderId === selectedFolder // Show files in the selected folder
     );
-  }, [files, searchTerm, selectedFolder]);
+  }, [files, selectedFolder]);
 
   const removeFile = (fileName: string) => {
     setFiles((prev) => prev.filter((file) => file.name !== fileName));
@@ -436,83 +445,37 @@ export default function EnhancedDropboxClone() {
           {filteredFiles.length === 0 ? (
             <p className="text-gray-500">No files found</p>
           ) : (
-            <>
-              {/* Row for images and videos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {filteredFiles.map(
-                  (file) =>
-                    (file.type?.startsWith("image/") ||
-                      file.type?.startsWith("video/")) && (
-                      <div
-                        key={file.name}
-                        className="bg-white p-4 rounded-lg shadow"
-                      >
-                        {file.type.startsWith("image/") ? (
-                          <img
-                            src={file.url}
-                            alt={file.name}
-                            className="w-full h-48 object-cover rounded-lg mb-2 cursor-pointer"
-                            onClick={() => handleImageClick(file.url || "")}
-                          />
-                        ) : (
-                          <video
-                            controls
-                            className="w-full h-48 object-cover rounded-lg mb-2"
-                          >
-                            <source src={file.url} type={file.type} />
-                            Your browser does not support the video tag.
-                          </video>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="truncate">
-                            {file.name.split("/").pop()}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeFile(file.name)}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                )}
-              </div>
-
-              {/* Row for other file types */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
-                {filteredFiles.map((file) =>
-                  !file.type?.startsWith("image/") &&
-                  !file.type?.startsWith("video/") ? (
-                    <div
-                      key={file.name}
-                      className="flex items-center bg-white p-2 rounded-lg shadow"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {filteredFiles.map((file) => (
+                <div key={file.name} className="bg-white p-4 rounded-lg shadow">
+                  {file.type.startsWith("image/") ? (
+                    <img
+                      src={file.url || ""}
+                      alt={file.name}
+                      className="w-full h-48 object-cover rounded-lg mb-2"
+                      onClick={() => handleImageClick(file.url || "")}
+                    />
+                  ) : (
+                    <p>File type not supported for display</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="truncate">
+                      {file.name.split("/").pop()}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeFile(file.name)}
                     >
-                      <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-lg">
-                        {getFileIcon(file.type)}
-                      </div>
-                      <span className="ml-2 truncate">
-                        {file.name.split("/").pop()}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeFile(file.name)}
-                        className="ml-auto"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ) : null
-                )}
-              </div>
-            </>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Modal for displaying the selected image */}
-        {/* Image Modal */}
         {selectedImage && (
           <ImageModal
             imageUrl={selectedImage}
