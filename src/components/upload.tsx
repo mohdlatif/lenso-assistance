@@ -107,6 +107,23 @@ const ImageModal = ({
     </div>
   );
 };
+
+const VideoPlayer = ({ url, name }: { url: string; name: string }) => {
+  return (
+    <div className="relative w-full h-48">
+      <video
+        src={url}
+        controls
+        className="absolute inset-0 w-full h-full object-cover rounded-lg"
+        crossOrigin="anonymous"
+      >
+        <source src={url} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  );
+};
+
 export default function EnhancedDropboxClone() {
   const auth = useStore($authStore);
   const userId = auth?.userId;
@@ -475,16 +492,22 @@ export default function EnhancedDropboxClone() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {filteredFiles.map((file) => (
                 <div key={file.name} className="bg-white p-4 rounded-lg shadow">
-                  {file.type.startsWith("image/") ? (
-                    <img
-                      src={file.url || ""}
-                      alt={file.name}
-                      className="w-full h-48 object-cover rounded-lg mb-2"
-                      onClick={() => handleImageClick(file.url || "")}
-                    />
-                  ) : (
-                    <p>File type not supported for display</p>
-                  )}
+                  <div className="mb-2">
+                    {file.type.startsWith("image/") ? (
+                      <img
+                        src={file.url || ""}
+                        alt={file.name}
+                        className="w-full h-48 object-cover rounded-lg cursor-pointer"
+                        onClick={() => handleImageClick(file.url || "")}
+                      />
+                    ) : file.type.startsWith("video/") ? (
+                      <VideoPlayer url={file.url || ""} name={file.name} />
+                    ) : (
+                      <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded-lg">
+                        {getFileIcon(file.type)}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between">
                     <span className="truncate">
                       {file.name.split("/").pop()}
