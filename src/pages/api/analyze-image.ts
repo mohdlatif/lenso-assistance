@@ -23,32 +23,24 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const [result] = await visionClient.annotateImage({
       image: { source: { imageUri: imageUrl } },
       features: [
-        { type: "LABEL_DETECTION" },
+        { type: "LABEL_DETECTION", maxResults: 3 },
         { type: "TEXT_DETECTION" },
-        { type: "FACE_DETECTION" },
         { type: "OBJECT_LOCALIZATION" },
       ],
     });
 
-    // Combine all labels and objects into simplified arrays
-    const labelDescriptions =
-      result.labelAnnotations?.map((label) => label.description) || [];
+    // Get only label descriptions
+    const labels = (result.labelAnnotations || []).map(
+      (label) => label.description || ""
+    );
 
-    const objectNames =
-      result.localizedObjectAnnotations?.map((obj) => obj.name) || [];
-
-    // Create simplified response
     const response = {
-      labels: labelDescriptions,
-      objects: objectNames,
+      labels,
+      objects: result.localizedObjectAnnotations?.map((obj) => obj.name) || [],
       text: result.fullTextAnnotation?.text || "",
-      faces: result.faceAnnotations?.length || 0,
     };
 
-    console.log("Combined Vision AI results:", {
-      labels: labelDescriptions.join(", "),
-      objects: objectNames.join(", "),
-    });
+    console.log("Vision AI response:", response); // Debug log
 
     return new Response(JSON.stringify(response), {
       status: 200,

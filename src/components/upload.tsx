@@ -233,6 +233,9 @@ export default function EnhancedDropboxClone() {
               const visionData = await visionResponse.json();
               console.log("Vision AI results:", visionData);
 
+              // Get the top 3 labels
+              const top3Labels = visionData.labels.slice(0, 3);
+
               // Get description from Aria using Vision AI results
               const ariaResponse = await fetch("/api/aria", {
                 method: "POST",
@@ -240,7 +243,7 @@ export default function EnhancedDropboxClone() {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  labels: visionData.labels,
+                  labels: top3Labels, // Pass only top 3 labels
                   objects: visionData.objects,
                 }),
               });
@@ -257,7 +260,7 @@ export default function EnhancedDropboxClone() {
                   folderId: selectedFolder,
                   url: url,
                   visionData: {
-                    labels: visionData.labels,
+                    labels: top3Labels, // Store only top 3 labels
                     text: visionData.text,
                     ariaDescription: ariaData.description,
                   },
@@ -544,23 +547,21 @@ export default function EnhancedDropboxClone() {
                           className="w-full h-48 object-cover rounded-lg cursor-pointer"
                           onClick={() => handleImageClick(file.url || "")}
                         />
-                        {file.visionData?.ariaDescription && (
-                          <p className="text-sm text-gray-600 italic">
-                            {file.visionData.ariaDescription}
-                          </p>
-                        )}
-                        <div className="flex flex-wrap gap-2">
-                          {file.visionData?.labels
-                            ?.slice(0, 3)
-                            .map((label, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-full shadow-sm hover:bg-blue-600 transition-colors"
-                              >
-                                {label}
-                              </span>
-                            ))}
-                        </div>
+                        {file.visionData?.labels &&
+                          file.visionData.labels.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {file.visionData.labels
+                                .slice(0, 3)
+                                .map((label, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-full shadow-sm hover:bg-blue-600 transition-colors"
+                                  >
+                                    {label}
+                                  </span>
+                                ))}
+                            </div>
+                          )}
                       </div>
                     ) : file.type.startsWith("video/") ? (
                       <VideoPlayer url={file.url || ""} name={file.name} />
