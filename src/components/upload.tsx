@@ -45,6 +45,64 @@ type FolderItem = {
   name: string;
 };
 
+// Add new ImageModal component
+const ImageModal = ({
+  imageUrl,
+  onClose,
+}: {
+  imageUrl: string;
+  onClose: () => void;
+}) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden"; // Prevent scrolling when modal is open
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "auto"; // Restore scrolling when modal closes
+    };
+  }, [onClose]);
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      <div className="relative max-w-[90vw] max-h-[90vh]">
+        <button
+          onClick={onClose}
+          className="absolute -top-10 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+          aria-label="Close modal"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <div className="rounded-lg overflow-hidden shadow-2xl">
+          <img
+            src={imageUrl}
+            alt="Full size preview"
+            className="max-w-full max-h-[85vh] object-contain"
+            onError={(e) => {
+              console.error("Image failed to load:", imageUrl);
+              e.currentTarget.src = "path-to-fallback-image.jpg"; // Add a fallback image
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 export default function EnhancedDropboxClone() {
   const auth = useStore($authStore);
   const userId = auth?.userId;
@@ -307,7 +365,11 @@ export default function EnhancedDropboxClone() {
 
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-auto">
-        <h1 className="text-2xl font-bold mb-6">Enhanced Dropbox Clone</h1>
+        <h1 className="text-2xl font-bold mb-6">
+          {selectedFolder
+            ? folders.find((folder) => folder.id === selectedFolder)?.name
+            : "Select a Folder"}
+        </h1>
 
         <div className="mb-6">
           <div className="relative">
@@ -347,7 +409,7 @@ export default function EnhancedDropboxClone() {
           ) : (
             <>
               {/* Row for images and videos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {filteredFiles.map(
                   (file) =>
                     (file.type?.startsWith("image/") ||
@@ -361,7 +423,7 @@ export default function EnhancedDropboxClone() {
                             src={file.url}
                             alt={file.name}
                             className="w-full h-48 object-cover rounded-lg mb-2 cursor-pointer"
-                            onClick={() => handleImageClick(file.url)}
+                            onClick={() => handleImageClick(file.url || "")}
                           />
                         ) : (
                           <video
@@ -390,7 +452,7 @@ export default function EnhancedDropboxClone() {
               </div>
 
               {/* Row for other file types */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
                 {filteredFiles.map((file) =>
                   !file.type?.startsWith("image/") &&
                   !file.type?.startsWith("video/") ? (
@@ -421,27 +483,13 @@ export default function EnhancedDropboxClone() {
         </div>
 
         {/* Modal for displaying the selected image */}
+        {/* Image Modal */}
         {selectedImage && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div id="image-modal" className="relative">
-              <img
-                src={selectedImage}
-                alt="Selected"
-                className="max-w-[80vw] max-h-[70vh] object-contain" // Set max width and height
-                onError={() =>
-                  console.error("Image failed to load:", selectedImage)
-                } // Log error if image fails to load
-              />
-              <button
-                onClick={closeModal}
-                className="absolute top-2 right-2 text-white"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          <ImageModal
+            imageUrl={selectedImage}
+            onClose={() => setSelectedImage(null)}
+          />
         )}
-
         {/* Tags Section */}
         <div className="mt-6">
           <h3 className="text-lg font-semibold mb-2">Tags</h3>
